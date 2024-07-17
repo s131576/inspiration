@@ -2,14 +2,17 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { FiLogOut } from "react-icons/fi";
-import Dropdown from "./Dropdown"; // Assuming you have a Dropdown component
-import { MenuItem } from "./Header"; // Assuming you have MenuItem interface
+import { FiLogOut, FiUser } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 
 const Navbar = () => {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]); // State to hold categories
+  const [categories, setCategories] = useState<string[]>([]);
   const { data: session } = useSession();
+  const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
+  const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,22 +42,29 @@ const Navbar = () => {
     fetchCategories();
   }, []);
 
-  const menuItems: MenuItem[] = [
-    {
-      title: "Home",
-      route: "/",
-    },
-    {
-      title: "Categories",
-      children: categories.map((category) => ({
-        title: category,
-        route: `/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-').replace(/['&]/g, ''))}`,
-      })),
-    },
-  ];
+  const handleCategoriesDropdownToggle = () => {
+    setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen);
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    setIsCategoriesDropdownOpen(false); // Close dropdown after selection
+  };
+  const handleAccountSelect = () => {
+    setIsAccountDropdownOpen(false); // Close dropdown after selection
+  };
+
+  const handleAccountDropdownToggle = () => {
+    setIsAccountDropdownOpen(!isAccountDropdownOpen);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');  // Redirect to home page after sign out
+  };
 
   return (
-    <header className="flex shadow-lg py-4 px-4 sm:px-10 bg-white font-sans min-h-70px tracking-wide relative z-50">
+    <header className={`flex shadow-lg py-4 px-4 sm:px-10 bg-white font-sans min-h-70px tracking-wide relative z-50 ${isScrolled ? 'sticky top-0 bg-white z-50' : 'relative'}`}>
       <div className="flex flex-wrap items-center justify-between gap-4 w-full">
         <Link href="/">
           <p className="lg:absolute max-lg:left-10 lg:top-2/4 lg:left-2/4 lg:-translate-x-1/2 lg:-translate-y-1/2">
@@ -63,33 +73,107 @@ const Navbar = () => {
         </Link>
 
         <div className="flex gap-8 items-center text-black">
-          {menuItems.map((item, index) =>
-            item.children ? (
-              <Dropdown key={index} item={item} />
-            ) : (
-              <Link key={index} href={item.route || ""}>
-                <p className=" text-[#333] block font-semibold text-15px cursor-pointer">{item.title}</p>
-              </Link>
-            )
+          {/* Menu Items */}
+          <Link href="/">
+            <p className="text-[#333] block font-semibold text-15px cursor-pointer">Home</p>
+          </Link>
+          {/* Categories Dropdown */}
+          {categories.length > 0 && (
+            <div className="relative">
+              <p
+                className={`text-[#333]  font-semibold text-15px cursor-pointer flex items-center ml-auto space-x-6 ${isCategoriesDropdownOpen ? 'text-blue-600' : ''}`}
+                onClick={handleCategoriesDropdownToggle}
+              >
+                Categories
+                <svg
+                    className="w-2.5 h-2.5 ms-3"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 10 6"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="m1 1 4 4 4-4"
+                    />
+                  </svg>
+              </p>
+              
+              {isCategoriesDropdownOpen && (
+                <div className="absolute top-full left-0 bg-white shadow-lg rounded-lg py-2 mt-1">
+                  {categories.map((category, index) => (
+                    <Link key={index} href={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-').replace(/['&]/g, ''))}`}>
+                      <p
+                        className={`block px-4 py-2 text-sm hover:bg-gray-200 ${selectedCategory === category ? 'text-blue-600 font-medium' : ''}`}
+                        onClick={() => handleCategorySelect(category)}
+                      >
+                        {category}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
         <div className="flex items-center ml-auto space-x-6">
+          {/* Conditional rendering based on session */}
           {session ? (
             <>
-              {session.user?.image && (
-                <img
-                  src={session.user.image}
-                  alt="Avatar"
-                  className="w-8 h-8 rounded-full"
-                />
-              )}
-              <h3 className="text-gray-500">{session.user?.name}</h3>
-              <button className="text-black" onClick={() => signOut()}>
-                <FiLogOut className="text-black ml-1" />
-              </button>
+              {/* Account Dropdown */}
+              <div className="relative">
+                <button
+                  id="dropdownAccountButton"
+                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  onClick={handleAccountDropdownToggle}
+                >
+                  <FiUser className="w-4 h-4 mr-1" />
+                  {session.user?.name}
+                  <svg
+                    className="w-2.5 h-2.5 ms-3"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 10 6"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="m1 1 4 4 4-4"
+                    />
+                  </svg>
+                </button>
+                {/* Dropdown Content */}
+                {isAccountDropdownOpen && (
+                  <div className="absolute top-full right-0 z-20 w-44 bg-white divide-y divide-gray-100 rounded-lg shadow-lg">
+                    <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownAccountButton">
+                      <li>
+                        <Link onClick={handleAccountSelect} href={"/account"}>
+                        <p className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                          Account
+                        </p>
+                        </Link>
+                        
+                      </li>
+                      <li>
+                        <button
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                          onClick={handleSignOut}
+                        >
+                          Sign out
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
+            // Render Sign In button if not authenticated
             <button
               onClick={() => signIn("google")}
               className="text-007bff hover:underline"
