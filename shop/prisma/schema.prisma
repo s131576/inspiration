@@ -38,7 +38,6 @@ model OrderItem {
   image     String
 }
 
-
 enum Role {
   ADMIN
   CUSTOMER

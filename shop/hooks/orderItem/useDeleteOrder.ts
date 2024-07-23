@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from 'react-query';
 
-const useDeleteOrder = (orderId: string) => {
+const useDeleteOrder = (orderId: any) => {
   const queryClient = useQueryClient();
   const mutation = useMutation(
     async() => {

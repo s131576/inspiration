@@ -1,6 +1,9 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
 import { IOrder, IOrderItem } from '@/types';
 import useStagairStore from '@/shopStore';
 import useOrder from '@/hooks/orderItem/useOrderStore';
@@ -16,12 +19,15 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, rating, category }) => {
   const { data: session } = useSession();
-  const { setOrder } = useStagairStore();
+  const { orders } = useStagairStore(); // Assuming this gets the current orders
   const { mutate: createOrder } = useOrder();
 
   const handleAddToCart = async () => {
     if (!session || !session.user) {
       console.error('User is not authenticated');
+      toast.warning('You need to log in to order');
+
+      
       return;
     }
 
@@ -32,13 +38,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       return;
     }
 
+    // Ensure orders is defined
+    if (!orders) {
+      console.error('Orders are not available');
+      return;
+    }
+
+   
+
     // Create a new order item
     const orderItem: IOrderItem = {
       id: new Date().toISOString(), // Unique ID for OrderItem
       orderId: '', // This should be updated or handled by the backend
-      productId: parseInt(id), // Parse ID to number
+      productId: parseInt(id),
       quantity: 1,
-      price, // Price is already a number
+      price,
       name,
       category,
       image,
@@ -46,7 +60,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
 
     // Create a new order
     const order: IOrder = {
-      id: new Date().toISOString(), // Unique ID for Order
+      id: new Date().toISOString(),
       userId: userIdentifier,
       items: [orderItem],
       createdAt: new Date().toISOString(),
@@ -54,8 +68,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
     };
 
     try {
-      // Make API call to create order
       await createOrder(order);
+      toast.success('Order created successfully');
       console.log('Order created successfully');
     } catch (error) {
       console.error('Failed to create order:', error);
@@ -69,7 +83,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       </div>
       <div className="flex flex-col flex-grow">
         <h3 className="text-xl font-semibold mb-2 text-gray-300">#{category}</h3>
-        <p className="text-gray-600 mb-2 text-left">${price.toFixed(2)}</p> {/* Format price to 2 decimal places */}
+        <p className="text-gray-600 mb-2 text-left">${price.toFixed(2)}</p>
         <h3 className="text-xl font-semibold mb-2 text-gray-600 flex-grow">{name}</h3>
         <div className="flex items-center mb-4">
           {Array.from({ length: Math.floor(rating) }, (_, index) => (
@@ -86,7 +100,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
               />
             </svg>
           ))}
-          <span className="text-gray-600 ml-1">{Math.floor(Number(rating.toFixed(1)))}</span> {/* Format rating to 1 decimal place */}
+          <span className="text-gray-600 ml-1">{Math.floor(Number(rating.toFixed(1)))}</span>
         </div>
       </div>
       <button onClick={handleAddToCart} className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-auto">

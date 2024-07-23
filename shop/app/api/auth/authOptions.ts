@@ -1,6 +1,6 @@
-// app/api/auth/authOptions.ts
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import prisma from '@/prisma/client'; // Importeer je Prisma-client
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -13,4 +13,29 @@ export const authOptions: NextAuthOptions = {
     signIn: '/auth/signin',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  callbacks: {
+    async signIn({ user }) {
+      try {
+        // Check if the user exists in the database
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+
+        if (!existingUser) {
+          // If the user does not exist, create a new user
+          await prisma.user.create({
+            data: {
+              name: user.name!,
+              email: user.email!,
+              img: user.image || '',
+            },
+          });
+        }
+        return true;
+      } catch (error) {
+        console.error("Error handling user sign-in:", error);
+        return false;
+      }
+    },
+  },
 };

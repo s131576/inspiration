@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { FiLogOut, FiUser, } from "react-icons/fi";
+import { FiLogOut, FiUser } from "react-icons/fi";
 import { TiShoppingCart } from "react-icons/ti";
 import { useRouter } from "next/navigation";
 
@@ -51,6 +51,7 @@ const Navbar = () => {
     setSelectedCategory(category);
     setIsCategoriesDropdownOpen(false); // Close dropdown after selection
   };
+
   const handleAccountSelect = () => {
     setIsAccountDropdownOpen(false); // Close dropdown after selection
   };
@@ -162,7 +163,6 @@ const Navbar = () => {
                             Account
                           </p>
                         </Link>
-
                       </li>
                       <li>
                         <button

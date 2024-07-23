@@ -1,10 +1,10 @@
-'use client';
-
+'use client'
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import useUpdateOrderItemQuantity from '@/hooks/orderItem/useUpdateOrder';
 import useDebounce from '@/helpers/useDeBounce';
 import Loading from '../components/loading/Loading';
+import { toast } from 'react-toastify';
 
 interface OrderItem {
   id: string;
@@ -77,7 +77,10 @@ const OrdersPage: React.FC = () => {
   const handleDeleteOrder = async (orderId: string) => {
     try {
       await axios.delete(`/api/orders/${orderId}`);
+      toast.success('Order deleted successfully');
       setOrders(orders.filter(order => order.id !== orderId));
+      
+
     } catch (error) {
       console.error('Failed to delete order', error);
     }

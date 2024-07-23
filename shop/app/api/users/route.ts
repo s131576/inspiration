@@ -24,33 +24,22 @@ export async function POST(request: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
+      where: { email },
     });
 
     if (user) {
-      return NextResponse.json(
-        { message: "User already exists" },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: "User already exists" }, { status: 400 });
     }
-    // create new user
+
+    // Create new user
     const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        img,
-      },
+      data: { name, email, img },
     });
 
     return NextResponse.json(newUser, { status: 201 });
   } catch (error) {
     console.log(error);
-    return NextResponse.json(
-      { message: "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Something went wrong" }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
