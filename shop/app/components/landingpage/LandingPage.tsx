@@ -1,26 +1,30 @@
-'use client'
-
-// components/landingpage/page.tsx
+"use client"
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Footer from "../footer/Footer";
+import { Product } from "@/types";
 import ProductCard from "../Items/PrudctCard";
-import { Product, Rating } from "@/types";
+import Loading from "../loading/Loading";
 
 const Landingpage: React.FC = () => {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     fetch("https://fakestoreapi.com/products")
       .then((response) => response.json())
       .then((data) => {
         // Filter products with rating above 3
-        const filteredProducts = data.filter((product: any) => Math.floor(product.rating.rate) > 3);
+        const filteredProducts = data.filter((product: Product) => Math.floor(product.rating.rate) > 3).slice(0,3);
         setProducts(filteredProducts);
+        setLoading(false);
       })
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
-
+  if (loading) {
+    return <Loading />;
+  }
   return (
     <div className="bg-gradient-to-b from-purple-800 to-indigo-900 min-h-screen text-white">
       {/* Hero Section */}
@@ -49,13 +53,14 @@ const Landingpage: React.FC = () => {
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold mb-8">Popular Products</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {products.map((product: any) => (
+          {products.map((product) => (
             <ProductCard
-              category={product.category}
               key={product.id}
+              id={product.id.toString()}
+              category={product.category}
               name={product.title}
               image={product.image}
-              price={product.price}
+              price={product.price} // Pass price as number
               rating={product.rating.rate}
             />
           ))}

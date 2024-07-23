@@ -1,52 +1,4 @@
-// export interface Dimensions {
-//   width: number;
-//   height: number;
-//   depth: number;
-// }
 
-// export interface Review {
-//   rating: number;
-//   comment: string;
-//   date: string; // Date should ideally be represented as a Date object in TypeScript, but for simplicity, it's kept as string here.
-//   reviewerName: string;
-//   reviewerEmail: string;
-// }
-
-// export interface Meta {
-//   createdAt: string; // Date should ideally be represented as a Date object in TypeScript, but for simplicity, it's kept as string here.
-//   updatedAt: string; // Date should ideally be represented as a Date object in TypeScript, but for simplicity, it's kept as string here.
-//   barcode: string;
-//   qrCode: string;
-// }
-
-// export interface Product {
-//   id: number;
-//   title: string;
-//   description: string;
-//   category: string;
-//   price: number;
-//   discountPercentage: number;
-//   rating: number;
-//   stock: number;
-//   tags: string[];
-//   brand: string;
-//   sku: string;
-//   weight: number;
-//   dimensions: Dimensions;
-//   warrantyInformation: string;
-//   shippingInformation: string;
-//   availabilityStatus: string;
-//   reviews: Review[];
-//   returnPolicy: string;
-//   minimumOrderQuantity: number;
-//   meta: Meta;
-//   images: string[];
-//   thumbnail: string;
-// }
-
-// export interface ProductsResponse {
-//   products: Product[];
-// }
 
 export interface Rating {
   rate: number;
@@ -67,12 +19,43 @@ export enum UserRole {
   STAGIAIR,
   STAGEBEGELEIDER,
 }
+
+// Define the Role enum
+export enum Role {
+  ADMIN = "ADMIN",
+  CUSTOMER = "CUSTOMER",
+}
+
+// Define the User interface
 export interface IUser {
   id: string;
-  name: string;
   email: string;
-  img: string;
-  createdAt: Date;
-  role: UserRole;
-  stagiairID: string;
+  name: string;
+  img?: string;
+  hashedPassword?: string;
+  role?: Role;
+  orders?: IOrder[]; // List of orders associated with the user
+}
+
+// Define the Order interface
+export interface IOrder {
+  id: string;
+  userId: string;
+  user?: IUser;
+  items: IOrderItem[]; 
+  createdAt: string;
+  updatedAt: string; 
+}
+
+// Define the OrderItem interface
+export interface IOrderItem {
+  id: string;
+  orderId: string;
+  order?: IOrder;
+  productId?: number;
+  quantity: number;
+  price: number;
+  name: string;
+  category: string;
+  image: string; 
 }

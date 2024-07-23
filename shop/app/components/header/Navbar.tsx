@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { FiLogOut, FiUser } from "react-icons/fi";
+import { FiLogOut, FiUser, } from "react-icons/fi";
+import { TiShoppingCart } from "react-icons/ti";
 import { useRouter } from "next/navigation";
 
 const Navbar = () => {
@@ -64,7 +65,8 @@ const Navbar = () => {
   };
 
   return (
-    <header className={`flex shadow-lg py-4 px-4 sm:px-10 bg-white font-sans min-h-70px tracking-wide relative z-50 ${isScrolled ? 'sticky top-0 bg-white z-50' : 'relative'}`}>
+    <header className={`flex shadow-lg py-4 px-4 sm:px-10 bg-white font-sans min-h-70px tracking-wide relative z-50 ${isScrolled ? 'sticky top-0 bg-white z-100' : 'relative z-100'}`}>
+
       <div className="flex flex-wrap items-center justify-between gap-4 w-full">
         <Link href="/">
           <p className="lg:absolute max-lg:left-10 lg:top-2/4 lg:left-2/4 lg:-translate-x-1/2 lg:-translate-y-1/2">
@@ -86,21 +88,21 @@ const Navbar = () => {
               >
                 Categories
                 <svg
-                    className="w-2.5 h-2.5 ms-3"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 10 6"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="m1 1 4 4 4-4"
-                    />
-                  </svg>
+                  className="w-2.5 h-2.5 ms-3"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 10 6"
+                  aria-hidden="true"
+                >
+                  <path
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="m1 1 4 4 4-4"
+                  />
+                </svg>
               </p>
-              
+
               {isCategoriesDropdownOpen && (
                 <div className="absolute top-full left-0 bg-white shadow-lg rounded-lg py-2 mt-1">
                   {categories.map((category, index) => (
@@ -123,11 +125,14 @@ const Navbar = () => {
           {/* Conditional rendering based on session */}
           {session ? (
             <>
+              <Link href="/ShopCard">
+                <TiShoppingCart className="w-5 h-5 mr-1" />
+              </Link>
               {/* Account Dropdown */}
               <div className="relative">
                 <button
                   id="dropdownAccountButton"
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  className="text-white bg-gray-700 hover:bg-gray-300 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-400"
                   onClick={handleAccountDropdownToggle}
                 >
                   <FiUser className="w-4 h-4 mr-1" />
@@ -153,11 +158,11 @@ const Navbar = () => {
                     <ul className="py-2 text-sm text-gray-700" aria-labelledby="dropdownAccountButton">
                       <li>
                         <Link onClick={handleAccountSelect} href={"/account"}>
-                        <p className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-                          Account
-                        </p>
+                          <p className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                            Account
+                          </p>
                         </Link>
-                        
+
                       </li>
                       <li>
                         <button

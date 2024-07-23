@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSession } from 'next-auth/react';
 import { FiSettings, FiTrash2, FiShoppingBag } from 'react-icons/fi'; // Icons for sidebar options
+import Link from 'next/link';
 
 const AccountPage: React.FC = () => {
   const { data: session } = useSession();
@@ -34,11 +35,17 @@ const AccountPage: React.FC = () => {
             <ul className="space-y-2">
               <li className="flex items-center">
                 <FiShoppingBag className="mr-2" />
+                <Link href="/account/bought">
                 <span className="cursor-pointer hover:text-blue-500">Bought</span>
+                </Link>
+                
               </li>
               <li className="flex items-center">
                 <FiSettings className="mr-2" />
+                <Link href="/account/settings">
                 <span className="cursor-pointer hover:text-blue-500">Settings</span>
+                </Link>
+                
               </li>
               <li className="flex items-center">
                 <FiTrash2 className="mr-2" />

@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
     // create new user
     const newUser = await prisma.user.create({
       data: {
