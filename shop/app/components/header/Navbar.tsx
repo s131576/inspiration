@@ -5,9 +5,19 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { FiLogOut, FiUser } from "react-icons/fi";
 import { TiShoppingCart } from "react-icons/ti";
 import { useRouter } from "next/navigation";
+import { OrderItem } from "@prisma/client";
+
+interface Order {
+  id: string;
+  userId: string;
+  items: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 const Navbar = () => {
   const router = useRouter();
+    const [orders, setOrders] = useState<Order[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const { data: session } = useSession();
@@ -25,10 +35,37 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  /*
+   useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await axios.get('/api/orders');
+        setOrders(response.data);
+
+        const initialQuantities: { [key: string]: number } = {};
+        response.data.forEach(order =>
+          order.items.forEach(item => {
+            initialQuantities[item.id] = item.quantity;
+          })
+        );
+        setQuantityState(initialQuantities);
+      } catch (error) {
+        console.error('Failed to fetch orders', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  */
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("https://fakestoreapi.com/products/categories");
+
         if (response.ok) {
           const data = await response.json();
           setCategories(data);

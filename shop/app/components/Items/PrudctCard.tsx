@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import React from 'react';
 import Image from 'next/image';
@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { IOrder, IOrderItem } from '@/types';
 import useStagairStore from '@/shopStore';
 import useOrder from '@/hooks/orderItem/useOrderStore';
+import useFetchOrders from '@/hooks/orderItem/useFetchOrders';
 
 interface ProductCardProps {
   id: string;
@@ -19,32 +20,39 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, rating, category }) => {
   const { data: session } = useSession();
-  const { orders } = useStagairStore(); // Assuming this gets the current orders
+  const { orders } = useStagairStore();
   const { mutate: createOrder } = useOrder();
+  const { data: existingOrders, isLoading } = useFetchOrders(); // Custom hook to fetch orders
 
   const handleAddToCart = async () => {
     if (!session || !session.user) {
       console.error('User is not authenticated');
       toast.warning('You need to log in to order');
-
-      
       return;
     }
 
     const userIdentifier = session.user.email || session.user.name;
-
     if (!userIdentifier) {
       console.error('User identifier is not available');
       return;
     }
 
-    // Ensure orders is defined
-    if (!orders) {
-      console.error('Orders are not available');
+    // Ensure existingOrders is defined
+    if (!existingOrders) {
+      console.error('Existing orders are not available');
       return;
     }
 
-   
+    // Check if the item already exists in any of the existing orders
+    const itemExists = existingOrders.some(order =>
+      order.items.some(item => item.name === name) // Check if the item name is order db
+    );
+
+    if (itemExists) {
+      toast.warn('Item already exists in an order');
+      console.log('Item already exists in an order');
+      return;
+    }
 
     // Create a new order item
     const orderItem: IOrderItem = {
@@ -72,6 +80,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       toast.success('Order created successfully');
       console.log('Order created successfully');
     } catch (error) {
+      toast.error('Failed to create order');
       console.error('Failed to create order:', error);
     }
   };

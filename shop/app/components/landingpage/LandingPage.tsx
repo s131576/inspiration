@@ -1,50 +1,44 @@
-"use client"
+// pages/index.js
+'use client';
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Footer from "../footer/Footer";
 import { Product } from "@/types";
 import ProductCard from "../Items/PrudctCard";
 import Loading from "../loading/Loading";
+import { Video } from "../video/Video";
 
 const Landingpage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-
   useEffect(() => {
     fetch("https://fakestoreapi.com/products")
       .then((response) => response.json())
       .then((data) => {
-        // Filter products with rating above 3
-        const filteredProducts = data.filter((product: Product) => Math.floor(product.rating.rate) > 3).slice(0,3);
+        const filteredProducts = data.filter((product: Product) => Math.floor(product.rating.rate) > 3).slice(0, 3);
         setProducts(filteredProducts);
         setLoading(false);
       })
       .catch((error) => console.error("Error fetching products:", error));
   }, []);
+
   if (loading) {
     return <Loading />;
   }
+
   return (
     <div className="bg-gradient-to-b from-purple-800 to-indigo-900 min-h-screen text-white">
       {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="flex items-center justify-between">
-          <div className="max-w-md">
+      <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+        <Video />
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">Discover Your Style</h1>
             <p className="text-lg mb-6">Explore a wide range of products that suit your taste.</p>
             <button className="bg-white text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-300 ease-in-out">
               Shop Now
             </button>
-          </div>
-          <div className="relative w-96 h-96">
-            <Image
-              src="/logo.png"
-              alt="Hero Image"
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg"
-            />
           </div>
         </div>
       </section>
@@ -60,7 +54,7 @@ const Landingpage: React.FC = () => {
               category={product.category}
               name={product.title}
               image={product.image}
-              price={product.price} // Pass price as number
+              price={product.price}
               rating={product.rating.rate}
             />
           ))}
@@ -77,7 +71,7 @@ const Landingpage: React.FC = () => {
           <input
             type="email"
             placeholder="Enter your email"
-            className="bg-white px-4 py-3 rounded-md w-full max-w-md mx-auto mb-4 focus:outline-none"
+            className="bg-white text-black px-4 py-3 rounded-md w-full max-w-md mx-auto mb-4 focus:outline-none"
           />
           <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-md font-semibold">
             Subscribe
