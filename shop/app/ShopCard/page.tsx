@@ -1,10 +1,12 @@
 'use client'
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import useUpdateOrderItemQuantity from '@/hooks/orderItem/useUpdateOrder';
-import useDebounce from '@/helpers/useDeBounce';
 import Loading from '../components/loading/Loading';
 import { toast } from 'react-toastify';
+import { useSession } from 'next-auth/react';
+import useDebounce from '@/helpers/useDeBounce';
 
 interface OrderItem {
   id: string;
@@ -30,23 +32,28 @@ const OrdersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [quantityState, setQuantityState] = useState<{ [key: string]: number }>({});
   const [debouncedQuantity, setDebouncedQuantity] = useState<{ [key: string]: number }>({});
-
+  const { data: session } = useSession();
   const { mutate: updateOrderItemQuantity } = useUpdateOrderItemQuantity();
-  const debouncedQuantityState = useDebounce(debouncedQuantity, 500); // Debounce for 500ms
-
+  const debouncedQuantityState = useDebounce(debouncedQuantity, 500);
   useEffect(() => {
     const fetchOrders = async () => {
-      try {
-        const response = await axios.get('/api/orders');
-        setOrders(response.data);
+      if (!session || !session.user) {
+        console.error('User is not authenticated');
+        toast.warning('You need to log in to view orders');
+        return;
+      }
 
-        const initialQuantities: { [key: string]: number } = {};
-        response.data.forEach(order =>
-          order.items.forEach(item => {
-            initialQuantities[item.id] = item.quantity;
-          })
-        );
-        setQuantityState(initialQuantities);
+      const userEmail = session.user.email;
+      if (!userEmail) {
+        console.error('User email is not available');
+        return;
+      }
+
+      try {
+        console.log(`Fetching orders for email: ${userEmail}`);
+        const response = await axios.get(`/api/orders/${userEmail}`);
+        console.log('Orders response:', response.data);
+        setOrders(response.data);
       } catch (error) {
         console.error('Failed to fetch orders', error);
       } finally {
@@ -55,7 +62,7 @@ const OrdersPage: React.FC = () => {
     };
 
     fetchOrders();
-  }, []);
+  }, [session]);
 
   useEffect(() => {
     if (Object.keys(debouncedQuantityState).length === 0) return;
@@ -72,15 +79,13 @@ const OrdersPage: React.FC = () => {
         });
       }
     });
-  }, [debouncedQuantityState]);
+  }, [debouncedQuantityState, orders, updateOrderItemQuantity]);
 
   const handleDeleteOrder = async (orderId: string) => {
     try {
       await axios.delete(`/api/orders/${orderId}`);
       toast.success('Order deleted successfully');
       setOrders(orders.filter(order => order.id !== orderId));
-      
-
     } catch (error) {
       console.error('Failed to delete order', error);
     }
@@ -108,7 +113,6 @@ const OrdersPage: React.FC = () => {
     handleQuantityChange(itemId, newQuantity);
   };
 
-  // Function to calculate the total price per item for all orders
   const calculateTotalPricePerItem = (orders: Order[], quantityState: { [key: string]: number }): number => {
     return orders.flatMap(order => order.items)
       .reduce((acc, item) => acc + (item.price * (quantityState[item.id] || item.quantity)), 0);

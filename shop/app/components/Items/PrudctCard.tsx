@@ -45,7 +45,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
 
     // Check if the item already exists in any of the existing orders
     const itemExists = existingOrders.some(order =>
-      order.items.some(item => item.name === name) // Check if the item name is order db
+      order.items.some(item => item.name === name) // Check if the 
     );
 
     if (itemExists) {

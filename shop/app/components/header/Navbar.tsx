@@ -1,30 +1,32 @@
 'use client'
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSession, signIn, signOut } from "next-auth/react";
-import { FiLogOut, FiUser } from "react-icons/fi";
+import { FiUser } from "react-icons/fi";
 import { TiShoppingCart } from "react-icons/ti";
 import { useRouter } from "next/navigation";
-import { OrderItem } from "@prisma/client";
 
 interface Order {
   id: string;
   userId: string;
-  items: OrderItem[];
+  items: { id: string; quantity: number }[];
   createdAt: string;
   updatedAt: string;
 }
 
 const Navbar = () => {
   const router = useRouter();
-    const [orders, setOrders] = useState<Order[]>([]);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [ordersCount, setOrdersCount] = useState<number>(0);
   const [categories, setCategories] = useState<string[]>([]);
-  const { data: session } = useSession();
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
+  const { data: session } = useSession();
+
+  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
@@ -35,37 +37,11 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  /*
-   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await axios.get('/api/orders');
-        setOrders(response.data);
-
-        const initialQuantities: { [key: string]: number } = {};
-        response.data.forEach(order =>
-          order.items.forEach(item => {
-            initialQuantities[item.id] = item.quantity;
-          })
-        );
-        setQuantityState(initialQuantities);
-      } catch (error) {
-        console.error('Failed to fetch orders', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchOrders();
-  }, []);
-
-  */
-
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch("https://fakestoreapi.com/products/categories");
-
         if (response.ok) {
           const data = await response.json();
           setCategories(data);
@@ -79,6 +55,34 @@ const Navbar = () => {
 
     fetchCategories();
   }, []);
+
+  // Fetch orders count when user session changes
+  useEffect(() => {
+    if (session?.user.email) {
+      const fetchOrdersCount = async () => {
+        try {
+          const response = await fetch(`/api/orders/${session.user.email}`);
+          if (response.ok) {
+            const data = await response.json();
+            setOrdersCount(data.length); // Assuming data is an array of orders
+          } else {
+            console.error("Failed to fetch orders");
+          }
+        } catch (error) {
+          console.error("Error fetching orders:", error);
+        }
+      };
+
+      fetchOrdersCount();
+
+      // Optionally set up polling to refresh orders count periodically
+      const interval = setInterval(() => {
+        fetchOrdersCount();
+      }, 10000); // Adjust the interval as needed
+
+      return () => clearInterval(interval);
+    }
+  }, [session]);
 
   const handleCategoriesDropdownToggle = () => {
     setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen);
@@ -98,13 +102,12 @@ const Navbar = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    await signOut({ redirect: false });
     router.push('/');  // Redirect to home page after sign out
   };
 
   return (
     <header className={`flex shadow-lg py-4 px-4 sm:px-10 bg-white font-sans min-h-70px tracking-wide relative z-50 ${isScrolled ? 'sticky top-0 bg-white z-100' : 'relative z-100'}`}>
-
       <div className="flex flex-wrap items-center justify-between gap-4 w-full">
         <Link href="/">
           <p className="lg:absolute max-lg:left-10 lg:top-2/4 lg:left-2/4 lg:-translate-x-1/2 lg:-translate-y-1/2">
@@ -118,7 +121,7 @@ const Navbar = () => {
           {categories.length > 0 && (
             <div className="relative">
               <p
-                className={`text-[#333]  font-semibold text-15px cursor-pointer flex items-center ml-auto space-x-6 ${isCategoriesDropdownOpen ? 'text-blue-600' : ''}`}
+                className={`text-[#333] font-semibold text-15px cursor-pointer flex items-center ml-auto space-x-6 ${isCategoriesDropdownOpen ? 'text-blue-600' : ''}`}
                 onClick={handleCategoriesDropdownToggle}
               >
                 Categories
@@ -159,9 +162,12 @@ const Navbar = () => {
         <div className="flex items-center ml-auto space-x-6">
           {session ? (
             <>
-              <Link href="/ShopCard">
-                <TiShoppingCart className="w-5 h-5 mr-1" />
-              </Link>
+              <div className="flex items-center space-x-2">
+                <Link href="/ShopCard" className="flex items-center">
+                  <TiShoppingCart className="w-5 h-5 mr-1" />
+                  {ordersCount > 0 && <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">{ordersCount}</span>}
+                </Link>
+              </div>
               {/* Account Dropdown */}
               <div className="relative">
                 <button
@@ -211,7 +217,6 @@ const Navbar = () => {
               </div>
             </>
           ) : (
-            // Render Sign In button if not authenticated
             <button
               onClick={() => signIn("google")}
               className="text-007bff hover:underline"

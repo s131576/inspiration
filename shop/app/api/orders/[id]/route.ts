@@ -1,6 +1,57 @@
 // app/api/orders/[id]/route.ts or pages/api/orders/[id].ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/prisma/client';
+import { connectToDatabase } from '@/helpers/server-helpers';
+
+// interface Params {
+//   params: { email: string };
+// }
+
+export async function GET(request: NextRequest) {
+  const url = new URL(request.url);
+  const email = url.pathname.split('/').pop(); // get the email from the pad --> /orders/email pop gets the last element
+
+  if (!email) {
+    console.error('Email parameter is missing');
+    return NextResponse.json({ error: 'Email parameter is missing' }, { status: 400 });
+  }
+
+  console.log(`Received email parameter: ${email}`);
+
+  try {
+    await prisma.$connect();
+
+    // Log the email being used in the query
+    console.log(`Fetching user with email: ${email}`);
+
+    const user = await prisma.user.findUnique({
+      where: { email: email },
+    });
+
+    // Log the user fetched
+    console.log('User found:', user);
+
+    if (!user) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    console.log(`Fetching orders for userId: ${user.id}`);
+
+    const orders = await prisma.order.findMany({
+      where: { userId: user.id },
+      include: { items: true },
+    });
+
+    console.log('Orders found:', orders);
+
+    return NextResponse.json(orders, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return NextResponse.json({ error: 'Error fetching orders' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
