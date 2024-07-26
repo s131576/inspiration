@@ -71,16 +71,13 @@ const Navbar = () => {
       <div className="flex flex-wrap items-center justify-between gap-4 w-full">
         <Link href="/">
           <p className="lg:absolute max-lg:left-10 lg:top-2/4 lg:left-2/4 lg:-translate-x-1/2 lg:-translate-y-1/2">
-            {/* <img src="/logo.png" alt="logo" className="w-72 h-20" /> */}
           </p>
         </Link>
 
         <div className="flex gap-8 items-center text-black">
-          {/* Menu Items */}
           <Link href="/">
             <p className="text-[#333] block font-semibold text-15px cursor-pointer">Home</p>
           </Link>
-          {/* Categories Dropdown */}
           {categories.length > 0 && (
             <div className="relative">
               <p
@@ -123,7 +120,6 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center ml-auto space-x-6">
-          {/* Conditional rendering based on session */}
           {session ? (
             <>
               <Link href="/ShopCard">
