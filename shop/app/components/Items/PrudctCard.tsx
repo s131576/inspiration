@@ -1,13 +1,12 @@
 'use client'
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
 import { IOrder, IOrderItem } from '@/types';
-import useStagairStore from '@/shopStore';
 import useOrder from '@/hooks/orderItem/useOrderStore';
-import useFetchOrders from '@/hooks/orderItem/useFetchOrders';
+import axios from 'axios';
 
 interface ProductCardProps {
   id: string;
@@ -20,44 +19,68 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, rating, category }) => {
   const { data: session } = useSession();
-  const { orders } = useStagairStore();
   const { mutate: createOrder } = useOrder();
-  const { data: existingOrders, isLoading } = useFetchOrders(); // Custom hook to fetch orders
+  const [existingOrders, setExistingOrders] = useState<IOrder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!session || !session.user) {
+        toast.warning('You need to log in to view orders');
+        return;
+      }
+
+      const userEmail = session.user.email;
+      if (!userEmail) {
+        return;
+      }
+
+      try {
+        const response = await axios.get(`/api/orders/${userEmail}`);
+        setExistingOrders(response.data);
+      } catch (error) {
+        console.error('Failed to fetch orders', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [session]);
 
   const handleAddToCart = async () => {
     if (!session || !session.user) {
-      console.error('User is not authenticated');
       toast.warning('You need to log in to order');
       return;
     }
 
     const userIdentifier = session.user.email || session.user.name;
     if (!userIdentifier) {
-      console.error('User identifier is not available');
       return;
     }
 
-    // Ensure existingOrders is defined
+    if (isLoading) {
+      toast.info('Loading your orders...');
+      return;
+    }
+
     if (!existingOrders) {
       console.error('Existing orders are not available');
       return;
     }
 
-    // Check if the item already exists in any of the existing orders
     const itemExists = existingOrders.some(order =>
-      order.items.some(item => item.name === name) // Check if the 
+      order.items.some(item => item.name === name)
     );
 
     if (itemExists) {
       toast.warn('Item already exists in an order');
-      console.log('Item already exists in an order');
       return;
     }
 
-    // Create a new order item
     const orderItem: IOrderItem = {
-      id: new Date().toISOString(), // Unique ID for OrderItem
-      orderId: '', // This should be updated or handled by the backend
+      id: new Date().toISOString(),
+      orderId: '',
       productId: parseInt(id),
       quantity: 1,
       price,
@@ -66,7 +89,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       image,
     };
 
-    // Create a new order
     const order: IOrder = {
       id: new Date().toISOString(),
       userId: userIdentifier,
@@ -78,7 +100,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
     try {
       await createOrder(order);
       toast.success('Order created successfully');
-      console.log('Order created successfully');
+      const response = await axios.get(`/api/orders/${session.user.email}`);
+      setExistingOrders(response.data);
     } catch (error) {
       toast.error('Failed to create order');
       console.error('Failed to create order:', error);

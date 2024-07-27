@@ -16,33 +16,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Email parameter is missing' }, { status: 400 });
   }
 
-  console.log(`Received email parameter: ${email}`);
-
   try {
     await prisma.$connect();
-
-    // Log the email being used in the query
-    console.log(`Fetching user with email: ${email}`);
 
     const user = await prisma.user.findUnique({
       where: { email: email },
     });
 
-    // Log the user fetched
-    console.log('User found:', user);
 
     if (!user) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
-    console.log(`Fetching orders for userId: ${user.id}`);
-
     const orders = await prisma.order.findMany({
       where: { userId: user.id },
       include: { items: true },
     });
-
-    console.log('Orders found:', orders);
 
     return NextResponse.json(orders, { status: 200 });
   } catch (error) {
