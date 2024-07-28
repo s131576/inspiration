@@ -157,7 +157,12 @@ const Navbar = () => {
               )}
             </div>
           )}
+           <Link href="/shophome">
+            <p className="text-[#333] block font-semibold text-15px cursor-pointer">Shop</p>
+          </Link>
+          
         </div>
+        
 
         <div className="flex items-center ml-auto space-x-6">
           {session ? (

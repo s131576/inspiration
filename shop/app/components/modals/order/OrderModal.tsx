@@ -1,24 +1,22 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { IOrder, IOrderItem } from '@/types';
+import { IOrder, IOrderItem, Product } from '@/types';
+import useStagairStore from '@/shopStore';
 import { useSession } from 'next-auth/react';
 import useOrder from '@/hooks/orderItem/useOrderStore';
 import { toast } from 'react-toastify';
 import axios from 'axios';
-import RatingStars from './RatingStars';
+import RatingStars from '../../Items/RatingStars';
 
-interface ProductCardProps {
-  id: string;
-  name: string;
-  image: string;
-  price: number;
-  rating: number;
-  category: string;
-  onClick: () => void; // This function will be called when the card is clicked
+interface OrderModalProps {
+  product: Product;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, rating, category, onClick }) => {
+const OrderModal: React.FC<OrderModalProps> = ({ product }) => {
+  const orderModalOpen = useStagairStore((state) => state.orderModal);
+  const toggleOrderModal = useStagairStore((state) => state.toggleOrderModal);
+
   const { data: session } = useSession();
   const { mutate: createOrder } = useOrder();
   const [existingOrders, setExistingOrders] = useState<IOrder[]>([]);
@@ -29,11 +27,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
     const fetchOrders = async () => {
       if (!session || !session.user) {
         toast.warning('You need to log in to view orders');
+        setIsLoading(false);
         return;
       }
 
       const userEmail = session.user.email;
       if (!userEmail) {
+        setIsLoading(false);
         return;
       }
 
@@ -47,8 +47,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       }
     };
 
-    fetchOrders();
-  }, [session]);
+    if (orderModalOpen) {
+      fetchOrders();
+    }
+  }, [session, orderModalOpen]);
+
+  useEffect(() => {
+    if (!orderModalOpen) {
+      setTemporarilyOrdered(false);
+    }
+  }, [orderModalOpen]);
+
+  if (!orderModalOpen) return null;
 
   const handleAddToCart = async () => {
     if (!session || !session.user) {
@@ -66,13 +76,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       return;
     }
 
-    if (!existingOrders) {
-      console.error('Existing orders are not available');
-      return;
-    }
-
     const itemExists = existingOrders.some(order =>
-      order.items.some(item => item.name === name)
+      order.items.some(item => item.name === product.title)
     );
 
     if (itemExists || temporarilyOrdered) {
@@ -83,12 +88,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
     const orderItem: IOrderItem = {
       id: new Date().toISOString(),
       orderId: '',
-      productId: parseInt(id),
+      productId: product.id,
       quantity: 1,
-      price,
-      name,
-      category,
-      image,
+      price: product.price,
+      name: product.title,
+      category: product.category,
+      image: product.image,
     };
 
     const order: IOrder = {
@@ -113,30 +118,41 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
   };
 
   return (
-    <div className="relative bg-white p-4 rounded-lg shadow-md flex flex-col h-full overflow-hidden">
-      <div
-        className="relative w-full h-96 mb-4 cursor-pointer hover:scale-105 transition-transform"
-        onClick={onClick} // Clicking on this div opens the modal
-      >
-        <Image src={image} alt={name} layout="fill" objectFit="cover" className="rounded-lg" />
-        <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity">
-          <span className="text-lg font-bold">View Details</span>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white max-w-4xl w-full rounded-lg shadow-lg overflow-hidden relative flex flex-col md:flex-row" style={{ height: '500px' }}>
+        <button
+          onClick={toggleOrderModal}
+          className="absolute top-2 right-2 text-gray-500 hover:text-black z-10"
+        >
+          X
+        </button>
+        <div className="relative w-full md:w-1/2 h-64 md:h-full flex items-center justify-center">
+          <Image
+            src={product.image || '/placeholder.jpg'}
+            alt={product.title || 'Product Image'}
+            layout="fill"
+            objectFit="contain"
+            className="object-contain"
+          />
+        </div>
+        <div className="md:w-1/2 p-6 flex flex-col justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-4 text-amber-800">{product.title}</h2>
+            <p className="text-gray-700 mb-4">{product.description || 'No description available.'}</p>
+            <p className="text-xl font-semibold text-green-600">${product.price}</p>
+            <RatingStars rating={product.rating.rate}/>
+          </div>
+          <div className="relative w-full h-96 mb-4 flex items-end">
+            <button
+              className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-auto"
+              onClick={handleAddToCart}>
+              Order
+            </button>
+          </div>
         </div>
       </div>
-      <div className="flex flex-col flex-grow">
-        <h3 className="text-xl font-semibold mb-2 text-gray-300">#{category}</h3>
-        <p className="text-gray-600 mb-2 text-left">${price.toFixed(2)}</p>
-        <h3 className="text-xl font-semibold mb-2 text-gray-600 flex-grow">{name}</h3>
-        <RatingStars rating={rating} />
-      </div>
-      <button
-        className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-auto"
-        onClick={handleAddToCart}
-      >
-        Order
-      </button>
     </div>
   );
 };
 
-export default ProductCard;
+export default OrderModal;

@@ -30,3 +30,26 @@
   object-fit: cover;
   z-index: -1;
 }
+.carousel .slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: slideIn 1s ease-in-out forwards;
+}
+
+.carousel .slide img {
+  width: auto;
+  max-height: 300px;
+  object-fit: contain;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

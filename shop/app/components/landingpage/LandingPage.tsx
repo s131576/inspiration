@@ -1,31 +1,41 @@
-// pages/index.js
 'use client';
-import React, { useEffect, useState } from "react";
-import Image from "next/image";
-import Footer from "../footer/Footer";
-import { Product } from "@/types";
-import ProductCard from "../Items/PrudctCard";
-import Loading from "../loading/Loading";
-import { Video } from "../video/Video";
+import React, { useEffect, useState } from 'react';
+import Footer from '../footer/Footer';
+import { Product } from '@/types';
+import Loading from '../loading/Loading';
+import OrderModal from '../modals/order/OrderModal';
+import useStagairStore from '@/shopStore';
+import { Video } from '../video/Video';
+import ProductCard from '../Items/PrudctCard';
+import Link from 'next/link';
+
 
 const Landingpage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const orderModalOpen = useStagairStore((state) => state.orderModal);
+  const toggleOrderModal = useStagairStore((state) => state.toggleOrderModal);
 
   useEffect(() => {
-    fetch("https://fakestoreapi.com/products")
+    fetch('https://fakestoreapi.com/products')
       .then((response) => response.json())
       .then((data) => {
         const filteredProducts = data.filter((product: Product) => Math.floor(product.rating.rate) > 3).slice(0, 3);
         setProducts(filteredProducts);
         setLoading(false);
       })
-      .catch((error) => console.error("Error fetching products:", error));
+      .catch((error) => console.error('Error fetching products:', error));
   }, []);
 
   if (loading) {
     return <Loading />;
   }
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    toggleOrderModal();
+  };
 
   return (
     <div className="bg-gradient-to-b from-purple-800 to-indigo-900 min-h-screen text-white">
@@ -33,19 +43,42 @@ const Landingpage: React.FC = () => {
       <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
         <Video />
         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4">Discover Your Style</h1>
-            <p className="text-lg mb-6">Explore a wide range of products that suit your taste.</p>
-            <button className="bg-white text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-300 ease-in-out">
-              Shop Now
-            </button>
+          <div className="text-center max-w-2xl mx-auto">
+            <h1 className="text-5xl font-bold mb-4">Discover Your Style</h1>
+            <p className="text-xl mb-6">Explore a wide range of products that suit your taste.</p>
+            <Link href="/shophome">
+              <button className="bg-white text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition duration-300 ease-in-out">
+                Shop Now
+              </button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Highlights Section */}
+      <section className="w-full px-4 lg:px-16 py-16 text-center bg-gray-400">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <h3 className="text-4xl font-bold mb-2">#1 in the World</h3>
+            <p className="text-lg">Recognized globally for our top-quality products and customer satisfaction.</p>
+            <div className="border-t border-gray-300 mt-4"></div>
+          </div>
+          <div>
+            <h3 className="text-4xl font-bold mb-2">20,000+ Customers</h3>
+            <p className="text-lg">Join thousands of satisfied customers who trust our products and services.</p>
+            <div className="border-t border-gray-300 mt-4"></div>
+          </div>
+          <div>
+            <h3 className="text-4xl font-bold mb-2">High-Quality Guarantee</h3>
+            <p className="text-lg">We ensure the best quality products, rigorously tested for excellence.</p>
+            <div className="border-t border-gray-300 mt-4"></div>
           </div>
         </div>
       </section>
 
       {/* Product Grid Section */}
       <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold mb-8">Popular Products</h2>
+        <h2 className="text-4xl font-bold text-center mb-8">Popular Products</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {products.map((product) => (
             <ProductCard
@@ -56,6 +89,7 @@ const Landingpage: React.FC = () => {
               image={product.image}
               price={product.price}
               rating={product.rating.rate}
+              onClick={() => handleProductClick(product)}
             />
           ))}
         </div>
@@ -78,6 +112,10 @@ const Landingpage: React.FC = () => {
           </button>
         </div>
       </section>
+
+      {selectedProduct && orderModalOpen && (
+        <OrderModal product={selectedProduct} />
+      )}
 
       {/* Footer */}
       <Footer />

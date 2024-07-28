@@ -73,7 +73,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: 'Invalid quantity' }, { status: 400 });
     }
 
-    // Assuming we're updating the entire order
     const updatedOrder = await prisma.order.update({
       where: { id: params.id },
       data: {

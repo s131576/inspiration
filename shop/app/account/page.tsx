@@ -1,13 +1,15 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
-import { FiTrash2 } from 'react-icons/fi';
+import { FiTrash2, FiShoppingCart, FiSettings } from 'react-icons/fi';
+import OrderHistory from '@/hooks/accountHistory/OrderHistory ';
 
 const AccountPage: React.FC = () => {
   const { data: session, status } = useSession();
   const userEmail = session?.user?.email;
+  const [activeTab, setActiveTab] = useState<'bought' | 'settings' | null>(null);
 
   if (status === 'loading') {
     return <div>Loading...</div>;
@@ -33,9 +35,10 @@ const AccountPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-screen-lg mx-auto py-10">
+    <div className="max-w-screen-lg mx-auto py-10 px-4">
       <h1 className="text-3xl font-semibold mb-4">Account</h1>
-      <div className="flex">
+
+      <div className="flex mb-6 items-center">
         {session.user?.image && (
           <img
             src={session.user.image}
@@ -57,10 +60,53 @@ const AccountPage: React.FC = () => {
                 <FiTrash2 className="mr-2" />
                 <span>Delete Account</span>
               </li>
+              <li
+                className={`flex items-center cursor-pointer hover:text-blue-500 ${
+                  activeTab === 'settings' ? 'text-blue-500' : 'text-gray-600'
+                }`}
+                onClick={() => setActiveTab('settings')}
+              >
+                <FiSettings className="mr-2" />
+                Settings
+              </li>
+              <li
+                className={`flex items-center cursor-pointer hover:text-blue-500 ${
+                  activeTab === 'bought' ? 'text-blue-500' : 'text-gray-600'
+                }`}
+                onClick={() => setActiveTab('bought')}
+              >
+                <FiShoppingCart className="mr-2" />
+                Order history
+              </li>
             </ul>
           </div>
         </div>
       </div>
+
+      {activeTab === 'bought' && userEmail && (
+        <div className="bg-white shadow-md rounded-md p-4 mb-4">
+          <h2 className="text-lg font-semibold mb-2 flex items-center">
+            <FiShoppingCart className="mr-2" />
+            Order history
+          </h2>
+          <div>
+            <OrderHistory userEmail={userEmail} />
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="bg-white shadow-md rounded-md p-4">
+          <h2 className="text-lg font-semibold mb-2 flex items-center">
+            <FiSettings className="mr-2" />
+            Settings
+          </h2>
+          <div>
+            {/* Add content related to user settings here */}
+            <p>Settings options will be available here.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

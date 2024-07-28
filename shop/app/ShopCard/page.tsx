@@ -1,8 +1,9 @@
+// components/OrdersPage.tsx
 'use client'
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import useUpdateOrderItemQuantity from '@/hooks/orderItem/useUpdateOrder';
+import useCreatePaidOrder from '@/hooks/orderItem/useCreatePaidOrder';  // Import the custom hook
 import Loading from '../components/loading/Loading';
 import { toast } from 'react-toastify';
 import { useSession } from 'next-auth/react';
@@ -34,7 +35,9 @@ const OrdersPage: React.FC = () => {
   const [debouncedQuantity, setDebouncedQuantity] = useState<{ [key: string]: number }>({});
   const { data: session } = useSession();
   const { mutate: updateOrderItemQuantity } = useUpdateOrderItemQuantity();
+  const { mutate: createPaidOrder } = useCreatePaidOrder();  // Use the custom hook
   const debouncedQuantityState = useDebounce(debouncedQuantity, 500);
+
   useEffect(() => {
     const fetchOrders = async () => {
       if (!session || !session.user) {
@@ -120,6 +123,34 @@ const OrdersPage: React.FC = () => {
 
   const totalPricePerItem = calculateTotalPricePerItem(orders, quantityState).toFixed(2);
 
+  const handlePlaceOrder = () => {
+    if (!session || !session.user) {
+      console.error('User is not authenticated');
+      toast.warning('You need to log in to place an order');
+      return;
+    }
+
+    const userEmail = session.user.email;
+    if (!userEmail) {
+      console.error('User email is not available');
+      return;
+    }
+
+    const orderIds = orders.map(order => order.id);
+
+    const totalAmount = parseFloat(totalPricePerItem);
+
+    createPaidOrder({
+      userEmail,
+      orderIds,
+      totalAmount,
+    });
+    setTimeout(() => {
+      setOrders([]);
+    }, 1000);
+    
+  };
+
   if (loading) {
     return <Loading />;
   }
@@ -133,7 +164,7 @@ const OrdersPage: React.FC = () => {
       <div className="mb-6 p-4 bg-white shadow-md rounded-lg">
         <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
         <p className="text-lg text-gray-600 mb-4">Total Price Per Item: ${totalPricePerItem}</p>
-        <button className="bg-blue-500 text-white py-2 px-4 rounded">
+        <button onClick={handlePlaceOrder} className="bg-blue-500 text-white py-2 px-4 rounded">
           Place Order
         </button>
       </div>
@@ -144,32 +175,26 @@ const OrdersPage: React.FC = () => {
             <p className="text-gray-600 mb-2">Created at: {new Date(order.createdAt).toLocaleString()}</p>
             {order.items.map(item => (
               <div key={item.id} className="flex items-center mb-4 p-2 border-b">
-                <img src={item.image} alt={item.name} className="w-16 h-16 object-cover mr-4" />
-                <div className="flex-grow">
-                  <h3 className="text-lg font-semibold">{item.name}</h3>
+                <img src={item.image} alt={item.name} className="w-16 h-16 mr-4" />
+                <div>
+                  <p className="font-semibold">{item.name}</p>
                   <p className="text-gray-600">Category: {item.category}</p>
                   <p className="text-gray-600">Price: ${item.price.toFixed(2)}</p>
-                  <p className="text-gray-600">Quantity:
-                    <input
-                      type="number"
-                      min="1"
-                      value={quantityState[item.id] || item.quantity}
-                      onChange={(e) => handleInputChange(item.id, e)}
-                      className="ml-2 p-1 border rounded"
-                    />
-                  </p>
-                  <div className="flex justify-center mt-2">
-                    <p className="text-gray-600 text-xl font-semibold">
-                      Total/Item: ${(item.price * (quantityState[item.id] || item.quantity)).toFixed(2)}
-                    </p>
-                  </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteOrder(order.id)}
-                  className="bg-red-500 text-white py-1 px-4 rounded"
-                >
-                  Delete Order
-                </button>
+                <div className="ml-auto flex items-center">
+                  <input
+                    type="number"
+                    value={quantityState[item.id] || item.quantity}
+                    onChange={(e) => handleInputChange(item.id, e)}
+                    className="w-16 p-2 border rounded"
+                  />
+                  <button
+                    onClick={() => handleDeleteOrder(order.id)}
+                    className="ml-4 bg-red-500 text-white py-2 px-4 rounded"
+                  >
+                    Delete Order
+                  </button>
+                </div>
               </div>
             ))}
           </div>

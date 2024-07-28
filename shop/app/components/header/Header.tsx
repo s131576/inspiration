@@ -10,10 +10,11 @@ export interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  {
-    title: "Home",
-    route: "/",
-  },
+  // {
+  //   title: "Home",
+  //   route: "/",
+    
+  // },
   {
     title: "Products",
     children: [
@@ -31,6 +32,7 @@ const menuItems: MenuItem[] = [
       },
     ],
   },
+  
 ];
 
 export default function Header() {

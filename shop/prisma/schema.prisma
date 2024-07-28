@@ -6,36 +6,52 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
-
 model User {
-  id             String    @id @default(auto()) @map("_id") @db.ObjectId
-  email          String    @unique
+  id             String      @id @default(auto()) @map("_id") @db.ObjectId
+  email          String      @unique
   name           String
   img            String?
   hashedPassword String?
-  role           Role?     @default(CUSTOMER)
-  orders         Order[]   
+  role           Role?       @default(CUSTOMER)
+  orders         Order[]
+  paidOrders     PaidOrder[]
 }
 
 model Order {
-  id        String      @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String      @db.ObjectId
-  user      User        @relation(fields: [userId], references: [id])
-  items     OrderItem[] 
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String      @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id])
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  paidOrderId String?     @db.ObjectId
+  paidOrder   PaidOrder?  @relation(fields: [paidOrderId], references: [id])
 }
 
 model OrderItem {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  orderId   String  @db.ObjectId
-  order     Order   @relation(fields: [orderId], references: [id])
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  orderId   String @db.ObjectId
+  order     Order  @relation(fields: [orderId], references: [id])
   productId Int
   quantity  Int
   price     Float
   name      String
   category  String
   image     String
+}
+
+model PaidOrder {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String    @db.ObjectId
+  user        User      @relation(fields: [userId], references: [id])
+  isPaid      Boolean   @default(false)
+  totalAmount Float     @default(0)
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  orderDetails Json
+
+  Order Order[]
 }
 
 enum Role {

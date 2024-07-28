@@ -37,25 +37,32 @@ export interface IUser {
   orders?: IOrder[]; // List of orders associated with the user
 }
 
-// Define the Order interface
-export interface IOrder {
-  id: string;
-  userId: string;
-  user?: IUser;
-  items: IOrderItem[]; 
-  createdAt: string;
-  updatedAt: string; 
-}
-
-// Define the OrderItem interface
 export interface IOrderItem {
   id: string;
   orderId: string;
-  order?: IOrder;
   productId?: number;
   quantity: number;
   price: number;
   name: string;
   category: string;
-  image: string; 
+  image: string;
+}
+
+export interface IOrder {
+  id: string;
+  userId: string;
+  items: IOrderItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaidOrder {
+  id: string;
+  userId: string;
+  isPaid: boolean;
+  totalAmount: number;
+  paidAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  orderDetails: IOrder[]; // Assuming orderDetails is an array of IOrder
 }

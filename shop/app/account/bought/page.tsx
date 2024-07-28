@@ -1,8 +1,9 @@
+import OrderHistory from '@/hooks/accountHistory/OrderHistory '
 import React from 'react'
 
 const Bought = () => {
   return (
-    <div>Bought</div>
+    <div></div>
   )
 }
 
