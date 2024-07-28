@@ -1,4 +1,3 @@
-// components/video/Video.js
 'use client';
 
 export function Video() {

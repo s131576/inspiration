@@ -1,15 +1,21 @@
 'use client';
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { toast } from 'react-toastify';
 import { FiTrash2, FiShoppingCart, FiSettings } from 'react-icons/fi';
+import useStagairStore from '@/shopStore';
+import { useRouter } from 'next/navigation';  
 import OrderHistory from '@/hooks/accountHistory/OrderHistory ';
+import ConfirmationModal from '../components/modals/account/DeleteAccount';
 
 const AccountPage: React.FC = () => {
   const { data: session, status } = useSession();
   const userEmail = session?.user?.email;
   const [activeTab, setActiveTab] = useState<'bought' | 'settings' | null>(null);
+
+  const toggleModalDelete = useStagairStore((state) => state.toggleOrderModalDelete);
+  const router = useRouter();  
 
   if (status === 'loading') {
     return <div>Loading...</div>;
@@ -22,8 +28,10 @@ const AccountPage: React.FC = () => {
   const handleDeleteAccount = async () => {
     if (userEmail) {
       try {
-        const response = await axios.delete(`/api/account/${userEmail}`);
+        const response = await axios.delete(`/api/users/${userEmail}`);
         toast.success(response.data.message);
+        await signOut();  
+        router.push('/');  
       } catch (error) {
         console.error('Failed to delete account', error);
         toast.error('Failed to delete account');
@@ -32,6 +40,14 @@ const AccountPage: React.FC = () => {
       console.error('User email is not available');
       toast.error('User email is not available');
     }
+  };
+
+  const openDeleteModal = () => {
+    toggleModalDelete();
+  };
+
+  const closeDeleteModal = () => {
+    toggleModalDelete();
   };
 
   return (
@@ -55,7 +71,7 @@ const AccountPage: React.FC = () => {
             <ul className="space-y-2">
               <li
                 className="flex items-center cursor-pointer hover:text-red-500"
-                onClick={handleDeleteAccount}
+                onClick={openDeleteModal}
               >
                 <FiTrash2 className="mr-2" />
                 <span>Delete Account</span>
@@ -102,11 +118,15 @@ const AccountPage: React.FC = () => {
             Settings
           </h2>
           <div>
-            {/* Add content related to user settings here */}
             <p>Settings options will be available here.</p>
           </div>
         </div>
       )}
+
+      <ConfirmationModal
+        onConfirm={handleDeleteAccount}
+        onCancel={closeDeleteModal}
+      />
     </div>
   );
 };

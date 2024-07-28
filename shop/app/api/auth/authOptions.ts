@@ -1,6 +1,6 @@
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
-import prisma from '@/prisma/client'; // Importeer je Prisma-client
+import prisma from '@/prisma/client';
 
 export const authOptions: NextAuthOptions = {
   providers: [

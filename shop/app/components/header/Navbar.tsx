@@ -25,17 +25,18 @@ const Navbar = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   const { data: session } = useSession();
+  
 
   // Handle scroll effect
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsScrolled(scrollTop > 0);
-    };
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     const scrollTop = window.scrollY;
+  //     setIsScrolled(scrollTop > 0);
+  //   };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  //   window.addEventListener("scroll", handleScroll);
+  //   return () => window.removeEventListener("scroll", handleScroll);
+  // }, []);
 
   // Fetch categories
   useEffect(() => {
@@ -56,15 +57,18 @@ const Navbar = () => {
     fetchCategories();
   }, []);
 
-  // Fetch orders count when user session changes
   useEffect(() => {
+    if (!session || !session.user) {
+      console.error('User is not authenticated');
+      return;
+    }
     if (session?.user.email) {
       const fetchOrdersCount = async () => {
         try {
           const response = await fetch(`/api/orders/${session.user.email}`);
           if (response.ok) {
             const data = await response.json();
-            setOrdersCount(data.length); // Assuming data is an array of orders
+            setOrdersCount(data.length);
           } else {
             console.error("Failed to fetch orders");
           }
@@ -75,14 +79,13 @@ const Navbar = () => {
 
       fetchOrdersCount();
 
-      // Optionally set up polling to refresh orders count periodically
       const interval = setInterval(() => {
         fetchOrdersCount();
-      }, 10000); // Adjust the interval as needed
+      }, 10000);
 
       return () => clearInterval(interval);
     }
-  }, [session]);
+  },[ordersCount]);
 
   const handleCategoriesDropdownToggle = () => {
     setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen);
@@ -103,7 +106,7 @@ const Navbar = () => {
 
   const handleSignOut = async () => {
     await signOut({ redirect: false });
-    router.push('/');  // Redirect to home page after sign out
+    router.push('/'); 
   };
 
   return (

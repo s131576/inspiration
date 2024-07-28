@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* In your global CSS file or Tailwind CSS configuration */
+
 .spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-left-color: transparent;
@@ -18,9 +18,9 @@
   }
 }
 .navbar {
-  z-index: 1000; /* Adjust as needed */
+  z-index: 1000; 
 }
-/* styles/globals.css or specific styles file */
+
 .video-background {
   position: absolute;
   top: 0;

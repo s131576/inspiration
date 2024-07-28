@@ -22,7 +22,7 @@ const page = () => {
       })
       .catch((error) => {
         console.error("Error fetching products:", error);
-        setLoading(false); // Ensure loading state is set to false on error
+        setLoading(false); 
       });
   }, []);
 
@@ -57,7 +57,7 @@ const page = () => {
           ))}
         </div>
       </section>
-      {selectedProduct && <OrderModal product={selectedProduct} />} {/* Render the modal if a product is selected */}
+      {selectedProduct && <OrderModal product={selectedProduct} />} 
     </div>
   );
 };

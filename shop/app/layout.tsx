@@ -23,7 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en">
     <body className={inter.className}>
-      <ToastProvider> {/* Wrap your app with ToastProvider */}
+      <ToastProvider>
         <TanstackProvider>
           <AuthProvider>
             <Navbar />

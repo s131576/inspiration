@@ -1,9 +1,8 @@
-// components/OrdersPage.tsx
 'use client'
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import useUpdateOrderItemQuantity from '@/hooks/orderItem/useUpdateOrder';
-import useCreatePaidOrder from '@/hooks/orderItem/useCreatePaidOrder';  // Import the custom hook
+import useCreatePaidOrder from '@/hooks/orderItem/useCreatePaidOrder'; 
 import Loading from '../components/loading/Loading';
 import { toast } from 'react-toastify';
 import { useSession } from 'next-auth/react';
@@ -35,14 +34,14 @@ const OrdersPage: React.FC = () => {
   const [debouncedQuantity, setDebouncedQuantity] = useState<{ [key: string]: number }>({});
   const { data: session } = useSession();
   const { mutate: updateOrderItemQuantity } = useUpdateOrderItemQuantity();
-  const { mutate: createPaidOrder } = useCreatePaidOrder();  // Use the custom hook
+  const { mutate: createPaidOrder } = useCreatePaidOrder();
   const debouncedQuantityState = useDebounce(debouncedQuantity, 500);
 
   useEffect(() => {
     const fetchOrders = async () => {
       if (!session || !session.user) {
         console.error('User is not authenticated');
-        toast.warning('You need to log in to view orders');
+        // toast.warning('You need to log in to view orders');
         return;
       }
 
@@ -126,7 +125,7 @@ const OrdersPage: React.FC = () => {
   const handlePlaceOrder = () => {
     if (!session || !session.user) {
       console.error('User is not authenticated');
-      toast.warning('You need to log in to place an order');
+      // toast.warning('You need to log in to place an order');
       return;
     }
 

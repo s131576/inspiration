@@ -5,7 +5,6 @@ import useStagairStore from '@/shopStore';
 import OrderModal from '../components/modals/order/OrderModal';
 import ProductCard from '../components/Items/PrudctCard';
 
-// Define the Product type
 interface Product {
   id: number;
   title: string;

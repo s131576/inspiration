@@ -20,13 +20,11 @@ export enum UserRole {
   STAGEBEGELEIDER,
 }
 
-// Define the Role enum
 export enum Role {
   ADMIN = "ADMIN",
   CUSTOMER = "CUSTOMER",
 }
 
-// Define the User interface
 export interface IUser {
   id: string;
   email: string;
@@ -34,7 +32,7 @@ export interface IUser {
   img?: string;
   hashedPassword?: string;
   role?: Role;
-  orders?: IOrder[]; // List of orders associated with the user
+  orders?: IOrder[]; 
 }
 
 export interface IOrderItem {
@@ -64,5 +62,5 @@ export interface PaidOrder {
   paidAt: string | null;
   createdAt: string;
   updatedAt: string;
-  orderDetails: IOrder[]; // Assuming orderDetails is an array of IOrder
+  orderDetails: IOrder[]; 
 }

@@ -1,4 +1,3 @@
-// app/api/orders/[id]/route.ts or pages/api/orders/[id].ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/prisma/client';
 import { connectToDatabase } from '@/helpers/server-helpers';
@@ -17,8 +16,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    await prisma.$connect();
-
+    connectToDatabase();
     const user = await prisma.user.findUnique({
       where: { email: email },
     });
@@ -78,7 +76,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       data: {
         items: {
           update: {
-            where: { id: body.itemId }, // Specific item
+            where: { id: body.itemId }, 
             data: { quantity }
           }
         }

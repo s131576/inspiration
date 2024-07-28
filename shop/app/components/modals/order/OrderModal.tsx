@@ -50,7 +50,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ product }) => {
     if (orderModalOpen) {
       fetchOrders();
     }
-  }, [session, orderModalOpen]);
+  }, [session, temporarilyOrdered]);
 
   useEffect(() => {
     if (!orderModalOpen) {
@@ -71,10 +71,10 @@ const OrderModal: React.FC<OrderModalProps> = ({ product }) => {
       return;
     }
 
-    if (isLoading) {
-      toast.info('Loading your orders...');
-      return;
-    }
+    // if (isLoading) {
+    //   toast.info('Loading your orders...');
+    //   return;
+    // }
 
     const itemExists = existingOrders.some(order =>
       order.items.some(item => item.name === product.title)

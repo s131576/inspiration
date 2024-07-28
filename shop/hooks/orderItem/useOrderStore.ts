@@ -10,12 +10,12 @@ const useOrder = () => {
   const mutation = useMutation(
     async(orderData: IOrder) => {
       return await axios.post('/api/orders', orderData)
-        .then(response => response.data as IOrder); // Assuming the API returns a single order
+        .then(response => response.data as IOrder);
     },
     {
       onSuccess: (data) => {
-        setOrders([data]); // Set the single order in Zustand store
-        queryClient.invalidateQueries('orders'); // Invalidate the 'orders' query to refetch data
+        setOrders([data]); 
+        queryClient.invalidateQueries('orders');
         console.log('Order created successfully');
       },
       onError: (error) => {

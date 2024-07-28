@@ -23,7 +23,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
   const { mutate: createOrder } = useOrder();
   const [existingOrders, setExistingOrders] = useState<IOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [temporarilyOrdered, setTemporarilyOrdered] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -75,7 +74,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       order.items.some(item => item.name === name)
     );
 
-    if (itemExists || temporarilyOrdered) {
+    if (itemExists) {
       toast.warn('Item already exists in an order');
       return;
     }
@@ -100,18 +99,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
     };
 
     try {
-      setTemporarilyOrdered(true);
       await createOrder(order);
       toast.success('Order created successfully');
       const response = await axios.get(`/api/orders/${session.user.email}`);
       setExistingOrders(response.data);
     } catch (error) {
-      setTemporarilyOrdered(false);
       toast.error('Failed to create order');
       console.error('Failed to create order:', error);
     }
   };
 
+  
   return (
     <div className="relative bg-white p-4 rounded-lg shadow-md flex flex-col h-full overflow-hidden">
       <div
@@ -131,8 +129,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       </div>
       <button
         className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-auto"
-        onClick={handleAddToCart}
-      >
+        onClick={handleAddToCart}>
         Order
       </button>
     </div>

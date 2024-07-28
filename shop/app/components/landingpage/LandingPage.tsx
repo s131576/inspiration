@@ -6,9 +6,8 @@ import Loading from '../loading/Loading';
 import OrderModal from '../modals/order/OrderModal';
 import useStagairStore from '@/shopStore';
 import { Video } from '../video/Video';
-import ProductCard from '../Items/PrudctCard';
 import Link from 'next/link';
-
+import ProductCard from '../Items/PrudctCard';
 
 const Landingpage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -18,14 +17,20 @@ const Landingpage: React.FC = () => {
   const toggleOrderModal = useStagairStore((state) => state.toggleOrderModal);
 
   useEffect(() => {
-    fetch('https://fakestoreapi.com/products')
-      .then((response) => response.json())
-      .then((data) => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('https://fakestoreapi.com/products');
+        const data = await response.json();
         const filteredProducts = data.filter((product: Product) => Math.floor(product.rating.rate) > 3).slice(0, 3);
         setProducts(filteredProducts);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => console.error('Error fetching products:', error));
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   if (loading) {
