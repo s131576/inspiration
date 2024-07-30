@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { IOrder, IOrderItem } from '@/types';
+import { IOrder, IOrderItem, IUser } from '@/types';
 
 
 export interface IStore {
@@ -12,6 +12,8 @@ export interface IStore {
   toggleOrderModal: () => void;
   toggleOrderModalDelete: () => void;
   updateOrderItemQuantity: (orderId: string, itemId: string, quantity: number) => void;
+  user:IUser;
+  updateUser: (oldEmail: string, newEmail: string, name: string) => void;
 }
 
 // Zustand store creation with updated types and default values
@@ -29,6 +31,23 @@ const useStagairStore = create<IStore>((set) => ({
     category: "", 
     image: "",
   },
+  user:{
+    id:"",
+    email:"",
+    name:""
+  },
+  updateUser: (oldEmail, newEmail, name) => set((state) => {
+    if (state.user && state.user.email === oldEmail) {
+      return {
+        user: {
+          ...state.user,
+          email: newEmail,
+          name: name,
+        },
+      };
+    }
+    return state;
+  }),
   setOrders: (orders) => set({ orders }),
   setOrder: (orderItem) => set({ orderItem }),
   toggleOrderModal: () => set((state) => ({ orderModal: !state.orderModal })),

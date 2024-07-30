@@ -50,7 +50,6 @@ model PaidOrder {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   orderDetails Json
-
   Order Order[]
 }
 

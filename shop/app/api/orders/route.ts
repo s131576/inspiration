@@ -1,10 +1,12 @@
 import { NextResponse, NextRequest } from 'next/server';
 import prisma from '@/prisma/client';
+import { connectToDatabase } from '@/helpers/server-helpers';
 
 
 
 export async function GET() {
   try {
+    connectToDatabase();
     const orders = await prisma.order.findMany({
       include: {
         items: true,
@@ -23,6 +25,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    connectToDatabase();
     const data = await request.json();
     const userEmail = data.userId;
 

@@ -1,6 +1,7 @@
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import prisma from '@/prisma/client';
+import { connectToDatabase } from '@/helpers/server-helpers';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,6 +17,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user }) {
       try {
+        connectToDatabase();
         // Check if the user exists in the database
         const existingUser = await prisma.user.findUnique({
           where: { email: user.email! },
@@ -35,6 +37,8 @@ export const authOptions: NextAuthOptions = {
       } catch (error) {
         console.error("Error handling user sign-in:", error);
         return false;
+      }finally {
+        await prisma.$disconnect();
       }
     },
   },

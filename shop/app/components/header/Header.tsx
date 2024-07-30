@@ -38,12 +38,6 @@ const menuItems: MenuItem[] = [
 export default function Header() {
   return (
     <header className="flex gap-10 items-center bg-zinc-800 py-4 px-2">
-      <Link href="https://designly.biz" target="_blank">
-        {/* Updated logo styling with Tailwind CSS */}
-        {/* <div className="flex items-center">
-          <Image src="/logo.svg" width={160} height={40} alt="logo" />
-        </div> */}
-      </Link>
       <div className="flex gap-8 items-center text-white">
         {menuItems.map((item) => {
           return item.hasOwnProperty("children") ? (

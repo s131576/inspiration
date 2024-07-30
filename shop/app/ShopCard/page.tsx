@@ -52,9 +52,7 @@ const OrdersPage: React.FC = () => {
       }
 
       try {
-        console.log(`Fetching orders for email: ${userEmail}`);
         const response = await axios.get(`/api/orders/${userEmail}`);
-        console.log('Orders response:', response.data);
         setOrders(response.data);
       } catch (error) {
         console.error('Failed to fetch orders', error);
@@ -88,6 +86,7 @@ const OrdersPage: React.FC = () => {
       await axios.delete(`/api/orders/${orderId}`);
       toast.success('Order deleted successfully');
       setOrders(orders.filter(order => order.id !== orderId));
+      setLoading(false);
     } catch (error) {
       console.error('Failed to delete order', error);
     }
@@ -164,7 +163,7 @@ const OrdersPage: React.FC = () => {
         <h2 className="text-2xl font-semibold mb-4">Order Summary</h2>
         <p className="text-lg text-gray-600 mb-4">Total Price Per Item: ${totalPricePerItem}</p>
         <button onClick={handlePlaceOrder} className="bg-blue-500 text-white py-2 px-4 rounded">
-          Place Order
+          Buy Order/Orders
         </button>
       </div>
       <div>

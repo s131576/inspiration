@@ -42,7 +42,8 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await prisma.$transaction(async (prisma) => {
+    connectToDatabase();
+    // await prisma.$transaction(async (prisma) => {
       // Delete related OrderItems first
       await prisma.orderItem.deleteMany({
         where: { orderId: params.id },
@@ -52,7 +53,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       await prisma.order.delete({
         where: { id: params.id },
       });
-    });
+    // });
 
     return NextResponse.json({ message: 'Order and related items deleted successfully' }, { status: 200 });
   } catch (error) {
@@ -64,6 +65,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 }
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    connectToDatabase();
     const body = await request.json();
     const quantity = parseInt(body.quantity, 10);
 

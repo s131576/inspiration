@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/prisma/client';
+import { connectToDatabase } from '@/helpers/server-helpers';
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
@@ -10,6 +11,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    connectToDatabase();
     const user = await prisma.user.findUnique({
       where: { email: userEmail },
       select: { id: true },
@@ -34,6 +36,8 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Failed to fetch paid orders' }, { status: 500 });
+  }finally {
+    await prisma.$disconnect();
   }
 }
 export async function POST(req: NextRequest) {
@@ -46,7 +50,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await prisma.$connect();
+    connectToDatabase();
 
     // Fetch the user by email
     const user = await prisma.user.findUnique({
@@ -80,7 +84,7 @@ export async function POST(req: NextRequest) {
         isPaid: true,
         totalAmount: totalAmount,
         paidAt: new Date(),
-        orderDetails: orders // Store order details as JSON
+        orderDetails: orders 
       },
     });
 

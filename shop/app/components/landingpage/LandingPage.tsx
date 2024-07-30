@@ -1,27 +1,52 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import Footer from '../footer/Footer';
-import { Product } from '@/types';
+import { Product, IOrder } from '@/types';
 import Loading from '../loading/Loading';
 import OrderModal from '../modals/order/OrderModal';
 import useStagairStore from '@/shopStore';
 import { Video } from '../video/Video';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import axios from 'axios';
 import ProductCard from '../Items/PrudctCard';
 
-const Landingpage: React.FC = () => {
+const Landingpage= () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [existingOrders, setExistingOrders] = useState<IOrder[]>([]);
   const orderModalOpen = useStagairStore((state) => state.orderModal);
   const toggleOrderModal = useStagairStore((state) => state.toggleOrderModal);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!session || !session.user) {
+        return;
+      }
+      const userEmail = session.user.email;
+      if (!userEmail) {
+        return;
+      }
+      try {
+        const response = await axios.get(`/api/orders/${userEmail}`);
+        setExistingOrders(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch orders', error);
+      }
+    };
+    fetchOrders();
+  }, [session,selectedProduct,existingOrders,orderModalOpen]);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('https://fakestoreapi.com/products');
-        const data = await response.json();
-        const filteredProducts = data.filter((product: Product) => Math.floor(product.rating.rate) > 3).slice(0, 3);
+        const response = await axios.get('https://fakestoreapi.com/products');
+        const data: Product[] = response.data;
+        const filteredProducts = data
+          .filter(product => Math.floor(product.rating.rate) > 3)
+          .slice(0, 3);
         setProducts(filteredProducts);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -31,11 +56,16 @@ const Landingpage: React.FC = () => {
     };
 
     fetchProducts();
-  }, []);
+  }, [session]);
 
   if (loading) {
     return <Loading />;
   }
+  const isProductInOrders = (productTitle: string) => {
+    return existingOrders.some(order =>
+      order.items.some(item => item.name === productTitle)
+    );
+  };
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
@@ -43,7 +73,7 @@ const Landingpage: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-b from-purple-800 to-indigo-900 min-h-screen text-white">
+    <div className="bg-gradient-to-b from-yellow-800  min-h-screen text-white">
       {/* Hero Section */}
       <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
         <Video />
@@ -61,7 +91,7 @@ const Landingpage: React.FC = () => {
       </section>
 
       {/* Highlights Section */}
-      <section className="w-full px-4 lg:px-16 py-16 text-center bg-gray-400">
+      <section className="w-full px-4 lg:px-16 py-16 text-center bg-gradient-to-b from-gray-500">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="text-4xl font-bold mb-2">#1 in the World</h3>
@@ -95,6 +125,7 @@ const Landingpage: React.FC = () => {
               price={product.price}
               rating={product.rating.rate}
               onClick={() => handleProductClick(product)}
+              isInOrder={isProductInOrders(product.title)}
             />
           ))}
         </div>
@@ -119,11 +150,12 @@ const Landingpage: React.FC = () => {
       </section>
 
       {selectedProduct && orderModalOpen && (
-        <OrderModal product={selectedProduct} />
+        <OrderModal 
+          product={selectedProduct} 
+          isInOrder={isProductInOrders(selectedProduct.title)}
+        />
       )}
-
-      {/* Footer */}
-      <Footer />
+      
     </div>
   );
 };

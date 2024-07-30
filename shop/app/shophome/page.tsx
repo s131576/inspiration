@@ -4,6 +4,9 @@ import Loading from '../components/loading/Loading';
 import useStagairStore from '@/shopStore';
 import OrderModal from '../components/modals/order/OrderModal';
 import ProductCard from '../components/Items/PrudctCard';
+import { IOrder } from '@/types';
+import { useSession } from 'next-auth/react';
+import axios from 'axios';
 
 interface Product {
   id: number;
@@ -25,6 +28,8 @@ const ShopPage: React.FC = () => {
   const [selectedRating, setSelectedRating] = useState('');
   const [selectedPriceRange, setSelectedPriceRange] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [existingOrders, setExistingOrders] = useState<IOrder[]>([]);
+  const { data: session } = useSession();
   const orderModalOpen = useStagairStore((state) => state.orderModal);
   const toggleOrderModal = useStagairStore((state) => state.toggleOrderModal);
 
@@ -32,18 +37,38 @@ const ShopPage: React.FC = () => {
     setSelectedProduct(product);
     toggleOrderModal();
   };
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!session || !session.user) {
+        return;
+      }
+      const userEmail = session.user.email;
+      if (!userEmail) {
+        return;
+      }
+      try {
+        const { data } = await axios.get('/api/orders');
+        setExistingOrders(data);
+      } catch (error) {
+        console.error('Failed to fetch orders', error);
+      }
+    };
+    fetchOrders();
+  }, [session,selectedProduct,existingOrders,orderModalOpen]);
 
   useEffect(() => {
-    fetch('https://fakestoreapi.com/products')
-      .then((response) => response.json())
-      .then((data: Product[]) => {
+    const fetchProducts = async () => {
+      try {
+        const { data } = await axios.get('https://fakestoreapi.com/products');
         setProducts(data);
-        setLoading(false);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('Error fetching products:', error);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchProducts();
   }, []);
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -66,18 +91,23 @@ const ShopPage: React.FC = () => {
     { label: '500 - 1000', min: 500, max: 1000 },
     { label: '1000 - 5000', min: 1000, max: 5000 },
   ];
+
   const filteredProducts = products.filter((product) => {
     const categoryMatch = selectedCategory ? product.category === selectedCategory : true;
     const ratingMatch = selectedRating ? Math.floor(product.rating.rate) === parseFloat(selectedRating) : true;
-    
     const selectedRange = priceRanges.find(range => range.label === selectedPriceRange);
     const priceMatch = selectedRange
       ? product.price >= selectedRange.min && product.price <= selectedRange.max
       : true;
-  
+
     return categoryMatch && ratingMatch && priceMatch;
   });
-  
+
+  const isProductInOrders = (productTitle: string): boolean => {
+    return existingOrders.some(order =>
+      order.items.some(item => item.name === productTitle)
+    );
+  };
 
   if (loading) {
     return <Loading />;
@@ -108,7 +138,7 @@ const ShopPage: React.FC = () => {
             <option value="1">1</option>
           </select>
         </div>
-        <div className="mb-4">
+        <div className="mb-4 ">
           <label className="block text-gray-700 mb-2">Price</label>
           <select className="w-full p-2 border border-gray-300 rounded" value={selectedPriceRange} onChange={handlePriceRangeChange}>
             <option value="">All Prices</option>
@@ -118,8 +148,8 @@ const ShopPage: React.FC = () => {
           </select>
         </div>
       </div>
-      <div className="w-3/4 p-4">
-        <h2 className="text-2xl font-bold mb-4">Products</h2>
+      <div className="w-3/4 p-4 bg-gradient-to-b bg-gray-600 text-white">
+        {/* <h2 className="text-2xl font-bold mb-4">Products</h2> */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {filteredProducts.map((product) => (
             <ProductCard
@@ -131,11 +161,15 @@ const ShopPage: React.FC = () => {
               price={product.price}
               rating={product.rating.rate}
               onClick={() => handleProductClick(product)}
+              isInOrder={isProductInOrders(product.title)}
             />
           ))}
         </div>
         {selectedProduct && orderModalOpen && (
-          <OrderModal product={selectedProduct} />
+          <OrderModal 
+            product={selectedProduct} 
+            isInOrder={isProductInOrders(selectedProduct.title)} 
+          />
         )}
       </div>
     </div>

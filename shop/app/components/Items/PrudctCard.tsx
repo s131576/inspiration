@@ -15,10 +15,11 @@ interface ProductCardProps {
   price: number;
   rating: number;
   category: string;
-  onClick: () => void; // This function will be called when the card is clicked
+  onClick: () => void;
+  isInOrder: boolean; 
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, rating, category, onClick }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, rating, category, onClick, isInOrder }) => {
   const { data: session } = useSession();
   const { mutate: createOrder } = useOrder();
   const [existingOrders, setExistingOrders] = useState<IOrder[]>([]);
@@ -27,7 +28,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
   useEffect(() => {
     const fetchOrders = async () => {
       if (!session || !session.user) {
-        toast.warning('You need to log in to view orders');
+        // toast.warning('You need to log in to view orders');
         return;
       }
 
@@ -74,7 +75,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       order.items.some(item => item.name === name)
     );
 
-    if (itemExists) {
+    if (itemExists || isInOrder) {
       toast.warn('Item already exists in an order');
       return;
     }
@@ -103,13 +104,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
       toast.success('Order created successfully');
       const response = await axios.get(`/api/orders/${session.user.email}`);
       setExistingOrders(response.data);
+      setIsLoading(false);
     } catch (error) {
       toast.error('Failed to create order');
       console.error('Failed to create order:', error);
     }
   };
 
-  
   return (
     <div className="relative bg-white p-4 rounded-lg shadow-md flex flex-col h-full overflow-hidden">
       <div
@@ -128,9 +129,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, name, image, price, ratin
         <RatingStars rating={rating} />
       </div>
       <button
-        className="bg-blue-500 text-white py-2 px-4 rounded-lg mt-auto"
-        onClick={handleAddToCart}>
-        Order
+        className={`bg-blue-500 text-white py-2 px-4 rounded-lg mt-auto ${isInOrder ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500'}`}
+        onClick={handleAddToCart}
+        disabled={isInOrder}
+      >
+        {isInOrder ? 'Item already in order list' : 'Order'}
       </button>
     </div>
   );

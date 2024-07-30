@@ -6,10 +6,8 @@ interface ConfirmationModalProps {
   onConfirm: () => void;
   onCancel: () => void;
 }
-
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ onConfirm, onCancel }) => {
   const modalDeleteOpen = useStagairStore((state) => state.toggleModalDelete);
-
   if (!modalDeleteOpen) return null;
 
   return (
@@ -35,5 +33,4 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ onConfirm, onCanc
     </div>
   );
 };
-
 export default ConfirmationModal;

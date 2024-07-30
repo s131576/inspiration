@@ -1,66 +1,118 @@
-'use client'
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import ProductCard from '@/app/components/Items/PrudctCard';
 import Loading from '@/app/components/loading/Loading';
 import OrderModal from '@/app/components/modals/order/OrderModal';
 import useStagairStore from '@/shopStore';
-import { Product } from '@/types';
-import React, { useEffect, useState } from 'react'
+import { Product, IOrder } from '@/types';
+import { useSession } from 'next-auth/react';
 
-const page = () => {
+const Page: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const toggleOrderModal = useStagairStore((state) => state.toggleOrderModal);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [existingOrders, setExistingOrders] = useState<IOrder[]>([]);
+  const toggleOrderModal = useStagairStore((state) => state.toggleOrderModal);
+  const orderModalOpen = useStagairStore((state) => state.orderModal);
+  const { data: session } = useSession();
 
   useEffect(() => {
-    fetch("https://fakestoreapi.com/products")
-      .then((response) => response.json())
-      .then((data) => {
-        const filteredProducts = data.filter((product: Product) => product.category === "jewelery");
+    const fetchOrders = async () => {
+      if (!session || !session.user) {
+        return;
+      }
+      const userEmail = session.user.email;
+      if (!userEmail) {
+        return;
+      }
+      try {
+        const { data } = await axios.get('/api/orders');
+        setExistingOrders(data);
+      } catch (error) {
+        console.error('Failed to fetch orders', error);
+      }
+    };
+
+    fetchOrders();
+  }, [session,selectedProduct,existingOrders,orderModalOpen]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data } = await axios.get('https://fakestoreapi.com/products');
+        const filteredProducts = data.filter((product: Product) => product.category === 'jewelery');
         setProducts(filteredProducts);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching products:", error);
-        setLoading(false); 
-      });
+      }
+    };
+
+    fetchProducts();
   }, []);
+
+  const isProductInOrders = (productTitle: string): boolean => {
+    return existingOrders.some(order =>
+      order.items.some(item => item.name === productTitle)
+    );
+  };
+
+  const handleProductClick = (product: Product): void => {
+    setSelectedProduct(product);
+    toggleOrderModal();
+  };
 
   if (loading) {
     return <Loading />;
   }
 
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(null); 
-    setTimeout(() => {
-      setSelectedProduct(product);
-      toggleOrderModal();
-    }, 0);
-  };
-
   return (
-    <div className='bg-emerald-600'>
-      <section className="container mx-auto px-4 py-16">
-        <h2 className="text-3xl font-bold mb-8 text-center">@Jewelery</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              id={product.id.toString()}
-              category={product.category}
-              name={product.title}
-              image={product.image}
-              price={product.price}
-              rating={product.rating.rate}
-              onClick={() => handleProductClick(product)}
-            />
-          ))}
-        </div>
-      </section>
-      {selectedProduct && <OrderModal product={selectedProduct} />} 
+    <div className='bg-gradient-to-r  from-yellow-700 min-h-screen'>
+      {/* Header Section */}
+      <header className="bg-gradient-to-r from-yellow-500 py-8 text-white text-center shadow-lg">
+        <h1 className="text-5xl font-extrabold">Jewelry Collection</h1>
+        <p className="text-xl mt-2">Explore our exquisite selection of fine jewelry.</p>
+      </header>
+      
+      {/* Main Content Section */}
+      <main className="container mx-auto px-4 py-16 ">
+        <section className="mb-12">
+          {/* <h2 className="text-4xl font-bold mb-8 text-center text-gray-800">Featured Jewelry</h2> */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {products.length > 0 ? (
+              products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id.toString()}
+                  category={product.category}
+                  name={product.title}
+                  image={product.image}
+                  price={product.price}
+                  rating={product.rating.rate}
+                  onClick={() => handleProductClick(product)}
+                  isInOrder={isProductInOrders(product.title)}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center text-gray-500">
+                <p>No jewelry available at the moment.</p>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
+      {/* Order Modal */}
+      {selectedProduct && orderModalOpen && (
+        <OrderModal 
+          product={selectedProduct} 
+          isInOrder={isProductInOrders(selectedProduct.title)}
+        />
+      )}
     </div>
   );
 };
 
-
-export default page
+export default Page;

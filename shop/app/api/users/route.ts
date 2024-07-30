@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma/client";
+import { connectToDatabase } from "@/helpers/server-helpers";
 
 export async function GET(request: NextRequest) {
   try {
+    connectToDatabase();
     const users = await prisma.user.findMany();
     return NextResponse.json(users, { status: 200 });
   } catch (error) {
@@ -18,6 +20,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    connectToDatabase();
     const { name, email, img } = await request.json();
     if (!name || !email) {
       return NextResponse.json({ message: "Invalid Request" }, { status: 400 });

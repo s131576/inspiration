@@ -6,8 +6,9 @@ import { toast } from 'react-toastify';
 import { FiTrash2, FiShoppingCart, FiSettings } from 'react-icons/fi';
 import useStagairStore from '@/shopStore';
 import { useRouter } from 'next/navigation';  
-import OrderHistory from '@/hooks/accountHistory/OrderHistory ';
 import ConfirmationModal from '../components/modals/account/DeleteAccount';
+import OrderHistory from '../components/account/OrderHistory';
+import AccountSettings from '../components/account/AccountSettings';
 
 const AccountPage: React.FC = () => {
   const { data: session, status } = useSession();
@@ -29,6 +30,7 @@ const AccountPage: React.FC = () => {
     if (userEmail) {
       try {
         const response = await axios.delete(`/api/users/${userEmail}`);
+        console.log("account fetch api/orders")
         toast.success(response.data.message);
         await signOut();  
         router.push('/');  
@@ -51,7 +53,7 @@ const AccountPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-screen-lg mx-auto py-10 px-4">
+    <div className="max-w-screen-lg min-h-screen mx-auto py-10 px-4 ">
       <h1 className="text-3xl font-semibold mb-4">Account</h1>
 
       <div className="flex mb-6 items-center">
@@ -111,14 +113,14 @@ const AccountPage: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'settings' && (
+      {activeTab === 'settings' && userEmail &&(
         <div className="bg-white shadow-md rounded-md p-4">
           <h2 className="text-lg font-semibold mb-2 flex items-center">
             <FiSettings className="mr-2" />
             Settings
           </h2>
           <div>
-            <p>Settings options will be available here.</p>
+          <AccountSettings userEmail={userEmail} />
           </div>
         </div>
       )}
