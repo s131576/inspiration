@@ -10,6 +10,8 @@ import { GiPowerButton } from "react-icons/gi";
 import { IoIosLogOut } from "react-icons/io";
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
 
 interface NavbarProps {
   ordersCountNav: number;
@@ -69,9 +71,21 @@ const Navbar: React.FC<NavbarProps> = ({ ordersCountNav }) => {
   return (
     <header className="flex flex-col md:flex-row shadow-lg py-4 px-4 sm:px-10 bg-white font-sans min-h-70px tracking-wide relative z-50">
       <div className="flex items-center justify-between w-full">
-        <Link href="/">
-          <p className="text-2xl font-bold">MyApp</p>
-        </Link>
+        
+      <div className="flex items-center">
+  <div className="relative w-12 h-12 md:w-16 md:h-16 mr-4"> {/* Responsive width and height */}
+    <Image
+      src="/logo.png"
+      alt="logo"
+      layout="fill"
+      objectFit="contain"
+    />
+  </div>
+  <Link href="/">
+    <a className="text-xl md:text-2xl font-bold">UrbanBazaar</a> {/* Responsive text size */}
+  </Link>
+</div>
+
 
         <div className="md:hidden flex items-center">
           <button onClick={handleNavbarToggle} className="text-2xl">
@@ -198,60 +212,60 @@ const Navbar: React.FC<NavbarProps> = ({ ordersCountNav }) => {
 
       {isNavbarOpen && (
         <>
-        <div className={`fixed inset-0 bg-gray-600 bg-opacity-50 z-9 ${isNavbarOpen ? 'block' : 'hidden'}`} onClick={handleNavbarToggle}></div>
-        <div className={`absolute top-16 left-0 w-full bg-gray-200 shadow-lg md:hidden z-10`}>
-          <div className="flex flex-col items-center py-4">
-            <Link href="/" onClick={() => setIsNavbarOpen(false)}>
-              <p className="text-[#333] font-semibold mb-4">Home</p>
-            </Link>
-            {categories.length > 0 && (
-              <div className="mb-4">
-                <p className="text-[#333] font-semibold cursor-pointer" onClick={handleCategoriesDropdownToggle}>
-                  Categories
+          <div className={`fixed inset-0 bg-gray-600 bg-opacity-50 z-9 ${isNavbarOpen ? 'block' : 'hidden'}`} onClick={handleNavbarToggle}></div>
+          <div className={`absolute top-16 left-0 w-full bg-gray-200 shadow-lg md:hidden z-10`}>
+            <div className="flex flex-col items-center py-4">
+              <Link href="/" onClick={() => setIsNavbarOpen(false)}>
+                <p className="text-[#333] font-semibold mb-4">Home</p>
+              </Link>
+              {categories.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[#333] font-semibold cursor-pointer" onClick={handleCategoriesDropdownToggle}>
+                    Categories
+                  </p>
+                  {isCategoriesDropdownOpen && (
+                    <div className="bg-white shadow-lg rounded-lg py-2 mt-1">
+                      {categories.map((category, index) => (
+                        <Link onClick={() => setIsNavbarOpen(false)} key={index} href={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-').replace(/['&]/g, ''))}`}>
+                          <p onClick={handleCategoriesDropdownToggle} className="block px-4 py-2 text-sm hover:bg-orange-800">{category}</p>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              <Link href="/ShopCard" className="flex items-center " onClick={() => setIsNavbarOpen(false)}>
+                <TiShoppingCart className="w-5 h-5 mr-1" />
+                {ordersCountNav > 0 && <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">{ordersCountNav}</span>}
+              </Link>
+              <Link href="/shophome" className='py-2' onClick={() => setIsNavbarOpen(false)}>
+                <p className="text-[#333] font-semibold">Shop</p>
+              </Link>
+              <Link href="/account" onClick={() => setIsNavbarOpen(false)}>
+                <p className="block px-4 py-2 hover:bg-gray-100">
+                  Account
                 </p>
-                {isCategoriesDropdownOpen && (
-                  <div className="bg-white shadow-lg rounded-lg py-2 mt-1">
-                    {categories.map((category, index) => (
-                      <Link onClick={() => setIsNavbarOpen(false)} key={index} href={`/products/${encodeURIComponent(category.toLowerCase().replace(/\s+/g, '-').replace(/['&]/g, ''))}`}>
-                        <p onClick={handleCategoriesDropdownToggle} className="block px-4 py-2 text-sm hover:bg-orange-800">{category}</p>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            <Link href="/ShopCard" className="flex items-center " onClick={() => setIsNavbarOpen(false)}>
-              <TiShoppingCart className="w-5 h-5 mr-1" />
-              {ordersCountNav > 0 && <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1">{ordersCountNav}</span>}
-            </Link>
-            <Link href="/shophome" className='py-2' onClick={() => setIsNavbarOpen(false)}>
-              <p className="text-[#333] font-semibold">Shop</p>
-            </Link>
-            <Link href="/account" onClick={() => setIsNavbarOpen(false)}>
-              <p className="block px-4 py-2 hover:bg-gray-100">
-                Account
-              </p>
-            </Link>
-            {session ? (
-              <button
-                onClick={handleSignOut}
-              >
-               <IoIosLogOut />
-              </button>
-            ) : (
-              <button
-                onClick={handleSignIn}
-              >
-               <GiPowerButton />
-              </button>
-            )}
+              </Link>
+              {session ? (
+                <button
+                  onClick={handleSignOut}
+                >
+                  <IoIosLogOut />
+                </button>
+              ) : (
+                <button
+                  onClick={handleSignIn}
+                >
+                  <GiPowerButton />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
         </>
       )}
-      
+
     </header>
-    
+
   );
 };
 
